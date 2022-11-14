@@ -220,6 +220,16 @@ class MultiFileWARCWriter(BaseWARCWriter):
             if self.max_size and new_size > self.max_size:
                 close_file = True
 
+            # check for idle time out since close_idle_files() doesn't appear to be ever called
+            if self.max_idle_time:
+                now = datetime.datetime.now()
+                tstamp = os.path.getmtime(filename)
+                mtime = datetime.datetime.fromtimestamp(tstamp)
+                
+                if (now - mtime) > self.max_idle_time:
+                    print('Closing idle ' + filename)
+                    close_file = True
+
             if close_file:
                 self._close_file(out)
                 if not is_new:
